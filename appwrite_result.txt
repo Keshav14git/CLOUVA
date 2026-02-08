@@ -1,0 +1,15 @@
+Testing Project ID: 6931c2ab002be1b72bb5
+
+----------------------------------------
+Testing Endpoint: https://cloud.appwrite.io/v1
+----------------------------------------
+Status Code: 401
+Response JSON: {'message': 'Project is not accessible in this region. Please make sure you are using the correct endpoint', 'code': 401, 'type': 'general_access_forbidden', 'version': '1.8.1'}
+SUCCESS: Project found! (401 is expected for unauthenticated request)
+
+----------------------------------------
+Testing Endpoint: https://sgp.cloud.appwrite.io/v1
+----------------------------------------
+Status Code: 401
+Response JSON: {'message': 'User (role: guests) missing scopes (["account"])', 'code': 401, 'type': 'general_unauthorized_scope', 'version': '1.8.1'}
+SUCCESS: Project found! (401 is expected for unauthenticated request)

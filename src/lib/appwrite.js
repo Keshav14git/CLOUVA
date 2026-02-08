@@ -3,8 +3,8 @@ import { Client, Account, Databases, Storage, Functions } from 'appwrite';
 export const client = new Client();
 
 client
-    .setEndpoint('https://sgp.cloud.appwrite.io/v1')
-    .setProject('6931c2ab002be1b72bb5');
+    .setEndpoint(import.meta.env.VITE_APPWRITE_ENDPOINT || 'https://cloud.appwrite.io/v1')
+    .setProject(import.meta.env.VITE_APPWRITE_PROJECT_ID);
 
 client.ping().then(() => {
     console.log('Appwrite is connected! 🟢');

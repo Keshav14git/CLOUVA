@@ -23,8 +23,11 @@ export const AuthProvider = ({ children }) => {
             setUser(accountDetails);
         } catch (error) {
             // 401 is expected if the user is not logged in (guest)
-            if (error.code !== 401) {
-                console.error('Authentication check failed:', error);
+            if (error.code === 401) {
+                console.log('User is currently a guest (not logged in).');
+            } else {
+                console.error('Authentication check failed unexpectedly:', error);
+                console.log('Error details:', JSON.stringify(error, null, 2));
             }
             setUser(null);
         } finally {
