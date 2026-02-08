@@ -65,8 +65,8 @@ export const AuthProvider = ({ children }) => {
     const loginWithGoogle = () => {
         account.createOAuth2Session(
             OAuthProvider.Google,
-            'http://localhost:5173/dashboard', // Success URL
-            'http://localhost:5173/login?failure=true' // Failure URL
+            `${window.location.origin}/dashboard`, // Success URL
+            `${window.location.origin}/login?failure=true` // Failure URL
         );
     };
 
