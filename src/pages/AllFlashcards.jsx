@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { ArrowLeft, Sparkles, FileText, BrainCircuit, Trash2 } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import Flashcard from '../components/Flashcard';
+import NotificationModal from '../components/NotificationModal';
 
 const AllFlashcards = () => {
     const { user } = useAuth();
@@ -12,6 +13,7 @@ const AllFlashcards = () => {
     const [flashcards, setFlashcards] = useState([]);
     const [files, setFiles] = useState({});
     const [loading, setLoading] = useState(true);
+    const [notification, setNotification] = useState({ show: false, type: 'success', title: '', message: '' });
 
     const handleDelete = async (cardId) => {
         if (window.confirm('Are you sure you want to delete this flashcard?')) {
@@ -20,7 +22,7 @@ const AllFlashcards = () => {
                 setFlashcards(flashcards.filter(card => card.$id !== cardId));
             } catch (error) {
                 console.error('Error deleting flashcard:', error);
-                alert('Failed to delete flashcard');
+                setNotification({ show: true, type: 'error', title: 'Error', message: 'Failed to delete flashcard' });
             }
         }
     };
@@ -140,6 +142,15 @@ const AllFlashcards = () => {
                     ))}
                 </div>
             )}
+
+            {/* Notification Modal */}
+            <NotificationModal
+                show={notification.show}
+                type={notification.type}
+                title={notification.title}
+                message={notification.message}
+                onClose={() => setNotification({ show: false, type: 'success', title: '', message: '' })}
+            />
         </div>
     );
 };

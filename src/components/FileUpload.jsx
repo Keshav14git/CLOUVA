@@ -11,6 +11,14 @@ const FileUpload = ({ onUploadComplete }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [files, setFiles] = useState([]);
   const [uploading, setUploading] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [errorModal, setErrorModal] = useState({ show: false, message: '' });
+  const [uploadProgress, setUploadProgress] = useState({
+    currentFile: '',
+    step: '', // 'extracting', 'extracted', 'embedding', 'completed'
+    fileIndex: 0,
+    totalFiles: 0
+  });
 
   const handleDragOver = (e) => {
     e.preventDefault();
@@ -97,20 +105,34 @@ const FileUpload = ({ onUploadComplete }) => {
 
   const uploadFiles = async () => {
     if (!user) {
-      alert('You must be logged in to upload files.');
+      setErrorModal({ show: true, message: 'You must be logged in to upload files.' });
       return;
     }
 
     setUploading(true);
     try {
-      for (const file of files) {
+      const totalFiles = files.length;
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+
         // 1. Extract Text (Client Side)
+        setUploadProgress({
+          currentFile: file.name,
+          step: 'extracting',
+          fileIndex: i + 1,
+          totalFiles
+        });
         console.log(`Extracting text for ${file.name}...`);
         const extractedText = await extractText(file);
         console.log(`Extracted ${extractedText.length} chars.`);
 
+        setUploadProgress(prev => ({ ...prev, step: 'extracted' }));
+
         if (!extractedText || extractedText.trim().length === 0) {
-          alert(`Warning: No text could be extracted from "${file.name}".\n\n1. It might be a scanned PDF (images only).\n2. Or the text extraction failed.\n\nThe ChatBot will NOT be able to read this file.`);
+          setErrorModal({
+            show: true,
+            message: `Warning: No text could be extracted from "${file.name}".\n\n1. It might be a scanned PDF (images only).\n2. Or the text extraction failed.\n\nThe ChatBot will NOT be able to read this file.`
+          });
         }
 
         // 1.5 Generate AI Categories
@@ -119,12 +141,15 @@ const FileUpload = ({ onUploadComplete }) => {
         // console.log(`Generated Categories:`, aiCategories);
 
         // 1.6 Generate Embedding (Smart Search)
+        setUploadProgress(prev => ({ ...prev, step: 'embedding' }));
         console.log(`Generating Embedding...`);
         // Truncate to ~1000 chars for embedding to capture the "gist" / intro
         // MiniLM has a token limit, so passing the whole book is wasteful and ignored after ~512 tokens
         const embeddingText = extractedText.slice(0, 2000);
         const embeddingVector = await generateEmbedding(embeddingText);
         console.log(`Embedding generated. Length: ${embeddingVector?.length}`);
+
+        setUploadProgress(prev => ({ ...prev, step: 'completed' }));
 
         const permissions = [
           Permission.read(Role.user(user.$id)),
@@ -171,18 +196,19 @@ const FileUpload = ({ onUploadComplete }) => {
         );
       }
       setFiles([]);
-      if (onUploadComplete) onUploadComplete();
-      alert('Files uploaded and processed successfully!');
+      setUploadProgress({ currentFile: '', step: '', fileIndex: 0, totalFiles: 0 });
+      setShowSuccessModal(true);
+      // onUploadComplete will be called when user closes the modal
     } catch (error) {
       console.error('Upload failed:', error);
       if (error.code === 400) {
-        // alert('Upload Error: 400 Bad Request.\n\nPlease ensure you have added the "ai_categories" attribute (Array of Strings) to your "files" collection in Appwrite Console.');
-        alert('Upload failed: Bad Request (400). Please check your Appwrite database attributes.');
+        setErrorModal({ show: true, message: 'Upload failed: Bad Request (400). Please check your Appwrite database attributes.' });
       } else {
-        alert('Upload failed: ' + error.message);
+        setErrorModal({ show: true, message: 'Upload failed: ' + error.message });
       }
     } finally {
       setUploading(false);
+      setUploadProgress({ currentFile: '', step: '', fileIndex: 0, totalFiles: 0 });
     }
   };
 
@@ -227,6 +253,63 @@ const FileUpload = ({ onUploadComplete }) => {
               </div>
             ))}
           </div>
+
+          {/* Progress Indicator */}
+          {uploading && uploadProgress.step && (
+            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg space-y-3">
+              <div className="flex items-center justify-between text-sm">
+                <span className="font-medium text-blue-900">
+                  Processing {uploadProgress.currentFile}
+                </span>
+                <span className="text-blue-600 text-xs">
+                  {uploadProgress.fileIndex} of {uploadProgress.totalFiles}
+                </span>
+              </div>
+
+              <div className="space-y-2">
+                {/* Step 1: Extracting Text */}
+                <div className="flex items-center gap-2 text-sm">
+                  {uploadProgress.step === 'extracting' ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                      <span className="text-blue-700">Extracting text...</span>
+                    </>
+                  ) : (
+                    <>
+                      <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                        <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                      <span className="text-green-700">Text extracted</span>
+                    </>
+                  )}
+                </div>
+
+                {/* Step 2: Generating Embeddings */}
+                {(uploadProgress.step === 'embedding' || uploadProgress.step === 'completed') && (
+                  <div className="flex items-center gap-2 text-sm">
+                    {uploadProgress.step === 'embedding' ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                        <span className="text-blue-700">Generating embeddings...</span>
+                      </>
+                    ) : (
+                      <>
+                        <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                          </svg>
+                        </div>
+                        <span className="text-green-700">Embeddings generated</span>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           <button
             onClick={uploadFiles}
             disabled={uploading}
@@ -234,6 +317,77 @@ const FileUpload = ({ onUploadComplete }) => {
           >
             {uploading ? 'Uploading...' : 'Upload to Vault'}
           </button>
+        </div>
+      )}
+
+      {/* Success Modal */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full mx-4 transform transition-all">
+            <div className="text-center space-y-4">
+              {/* Success Icon */}
+              <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+
+              {/* Message */}
+              <div>
+                <h3 className="text-xl font-semibold text-zinc-900 mb-2">
+                  Upload Successful!
+                </h3>
+                <p className="text-zinc-600">
+                  Your files have been uploaded and processed successfully.
+                </p>
+              </div>
+
+              {/* Close Button */}
+              <button
+                onClick={() => {
+                  setShowSuccessModal(false);
+                  if (onUploadComplete) onUploadComplete();
+                }}
+                className="w-full py-3 bg-primary text-white font-medium rounded-lg hover:bg-primary/90 transition-colors"
+              >
+                Continue
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Error/Warning Modal */}
+      {errorModal.show && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full mx-4 transform transition-all">
+            <div className="text-center space-y-4">
+              {/* Error Icon */}
+              <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
+                <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+
+              {/* Message */}
+              <div>
+                <h3 className="text-xl font-semibold text-zinc-900 mb-2">
+                  {errorModal.message.includes('Warning') ? 'Warning' : 'Error'}
+                </h3>
+                <p className="text-zinc-600 whitespace-pre-line text-sm">
+                  {errorModal.message}
+                </p>
+              </div>
+
+              {/* Close Button */}
+              <button
+                onClick={() => setErrorModal({ show: false, message: '' })}
+                className="w-full py-3 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

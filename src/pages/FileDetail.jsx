@@ -5,6 +5,7 @@ import { ID, Query, Permission, Role } from 'appwrite';
 import { ArrowLeft, Download, FileText, Image as ImageIcon, File, ExternalLink, Sparkles, GraduationCap, ArrowRight, BrainCircuit } from 'lucide-react';
 import { generateFlashcardsAI } from '../lib/groq';
 import StudyModal from '../components/StudyModal';
+import NotificationModal from '../components/NotificationModal';
 import { useAuth } from '../context/AuthContext';
 
 const FileDetail = () => {
@@ -16,6 +17,7 @@ const FileDetail = () => {
     const [flashcards, setFlashcards] = useState([]);
     const [generating, setGenerating] = useState(false);
     const [isStudyModalOpen, setIsStudyModalOpen] = useState(false);
+    const [notification, setNotification] = useState({ show: false, type: 'success', title: '', message: '' });
 
     useEffect(() => {
         const fetchFile = async () => {
@@ -50,7 +52,7 @@ const FileDetail = () => {
 
     const handleGenerateFlashcards = async () => {
         if (!fileData?.extractedText) {
-            alert("No text available to generate flashcards.");
+            setNotification({ show: true, type: 'warning', title: 'Warning', message: 'No text available to generate flashcards.' });
             return;
         }
 
@@ -88,7 +90,7 @@ const FileDetail = () => {
             setFlashcards([...flashcards, ...savedCards]);
         } catch (error) {
             console.error("Generation failed", error);
-            alert("Failed to generate flashcards. Please try again.");
+            setNotification({ show: true, type: 'error', title: 'Error', message: 'Failed to generate flashcards. Please try again.' });
         } finally {
             setGenerating(false);
         }
@@ -101,7 +103,7 @@ const FileDetail = () => {
                 setFlashcards(flashcards.filter(card => card.$id !== cardId));
             } catch (error) {
                 console.error('Error deleting flashcard:', error);
-                alert('Failed to delete flashcard');
+                setNotification({ show: true, type: 'error', title: 'Error', message: 'Failed to delete flashcard' });
             }
         }
     };
@@ -262,6 +264,15 @@ const FileDetail = () => {
                 onGenerateMore={handleGenerateFlashcards}
                 generating={generating}
                 onDelete={handleDeleteFlashcard}
+            />
+
+            {/* Notification Modal */}
+            <NotificationModal
+                show={notification.show}
+                type={notification.type}
+                title={notification.title}
+                message={notification.message}
+                onClose={() => setNotification({ show: false, type: 'success', title: '', message: '' })}
             />
         </div>
     );

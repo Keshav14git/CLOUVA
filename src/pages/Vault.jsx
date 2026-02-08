@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import FileUpload from '../components/FileUpload';
+import NotificationModal from '../components/NotificationModal';
 import { Plus, Trash2, File, FileText, Image as ImageIcon, Loader } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { databases, storage, DATABASE_ID, COLLECTION_FILES, BUCKET_FILES } from '../lib/appwrite';
@@ -10,6 +11,7 @@ const Vault = () => {
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [notification, setNotification] = useState({ show: false, type: 'success', title: '', message: '' });
   const navigate = useNavigate();
 
   const filteredFiles = selectedCategory === 'All'
@@ -55,10 +57,10 @@ const Vault = () => {
       }
 
       setFiles(prev => prev.filter(f => f.$id !== file.$id));
-      alert('File deleted successfully.');
+      setNotification({ show: true, type: 'success', title: 'Success', message: 'File deleted successfully.' });
     } catch (error) {
       console.error('Delete failed:', error);
-      alert('Failed to delete file. It might already be gone.');
+      setNotification({ show: true, type: 'error', title: 'Error', message: 'Failed to delete file. It might already be gone.' });
     }
   };
 
@@ -231,6 +233,15 @@ const Vault = () => {
           </div>
         )}
       </div>
+
+      {/* Notification Modal */}
+      <NotificationModal
+        show={notification.show}
+        type={notification.type}
+        title={notification.title}
+        message={notification.message}
+        onClose={() => setNotification({ show: false, type: 'success', title: '', message: '' })}
+      />
     </div>
   );
 };
