@@ -1,0 +1,13 @@
+{
+    "name": "extract-text",
+    "version": "1.0.0",
+    "description": "Extract text from files using Gemini",
+    "main": "src/main.js",
+    "type": "module",
+    "dependencies": {
+        "@google/generative-ai": "^0.1.0",
+        "mammoth": "^1.11.0",
+        "node-appwrite": "^11.0.0",
+        "pdf-parse": "^2.4.5"
+    }
+}

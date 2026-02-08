@@ -1,0 +1,53 @@
+{
+    "projectId": "6931c2ab002be1b72bb5",
+    "projectName": "clouva-v1",
+    "functions": [
+        {
+            "$id": "classify-file",
+            "name": "classify-file",
+            "runtime": "node-18.0",
+            "path": "functions/classify-file",
+            "entrypoint": "src/main.js",
+            "ignore": [
+                "node_modules",
+                ".gitignore"
+            ],
+            "execute": [],
+            "events": [],
+            "schedule": "",
+            "timeout": 15
+        },
+        {
+            "$id": "extract-text",
+            "name": "extract-text",
+            "runtime": "node-18.0",
+            "path": "functions/extract-text",
+            "entrypoint": "src/main.js",
+            "ignore": [
+                "node_modules",
+                ".gitignore"
+            ],
+            "execute": [],
+            "events": [],
+            "schedule": "",
+            "timeout": 60
+        },
+        {
+            "$id": "chat-with-files",
+            "name": "chat-with-files",
+            "runtime": "node-18.0",
+            "path": "functions/chat-with-files",
+            "entrypoint": "src/main.js",
+            "ignore": [
+                "node_modules",
+                ".gitignore"
+            ],
+            "execute": [
+                "any"
+            ],
+            "events": [],
+            "schedule": "",
+            "timeout": 60
+        }
+    ]
+}

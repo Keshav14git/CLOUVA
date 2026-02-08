@@ -1,0 +1,9 @@
+Testing models:
+❌ gemini-1.5-flash: 404 Not Found
+❌ gemini-1.5-flash-001: 404 Not Found
+❌ gemini-1.5-flash-8b: 404 Not Found
+❌ gemini-1.5-pro: 404 Not Found
+❌ gemini-1.5-pro-001: 404 Not Found
+❌ gemini-pro: 404 Not Found
+❌ gemini-1.0-pro: 404 Not Found
+⚠️ gemini-2.0-flash-exp: 429 Quota Exceeded

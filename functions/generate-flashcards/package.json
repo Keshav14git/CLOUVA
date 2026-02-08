@@ -1,0 +1,10 @@
+{
+    "name": "generate-flashcards",
+    "version": "1.0.0",
+    "main": "src/main.js",
+    "type": "module",
+    "dependencies": {
+        "node-appwrite": "^11.0.0",
+        "@google/generative-ai": "^0.1.0"
+    }
+}
