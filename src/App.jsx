@@ -13,6 +13,7 @@ import Login from './pages/Login';
 import Settings from './pages/Settings';
 import AllFlashcards from './pages/AllFlashcards';
 import FileComparison from './pages/FileComparison';
+import DebugAuth from './DebugAuth'; // Verify path
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -35,6 +36,7 @@ function App() {
             {/* Public Routes */}
             <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/debug" element={<DebugAuth />} />
 
             {/* Protected Routes */}
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
